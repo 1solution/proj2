@@ -2,11 +2,25 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <ctype.h>
 
 	int checkAngle(double x) {
 		if(x > 0 && x <= 1.4)
 			return 1;
 		return 0;
+	}
+
+	int validArguments(int argc, char* argv[]) { // -c 1 -m arg value error
+	  int override = 0;
+		for(int i = 2; i < argc; i++) {
+		  if(argc > 4 && !strcmp(argv[1],"-c") && !strcmp(argv[3],"-m"))
+        override = 1;
+			for(int k = 0; argv[i][k] != '\0'; k++) {
+				if(!isdigit(argv[i][k]) && argv[i][k] != '.' && override == 0)
+					return 0;
+			}
+		}
+		return 1;
 	}
 
 	double myOwnPow(double x, int n) { // fce simuluje mocninu
@@ -19,7 +33,7 @@
 	double taylor_tan(double x, unsigned int n) { // fce vypocita v jednom kroku taylor_tan, pouze pro jeden krok. zpracovani az v main nebo do jine funkce
 		unsigned long long citatel[] = {1, 1, 2, 17, 62, 1382, 21844, 929569, 6404582, 443861162, 18888466084, 113927491862, 58870668456604};
 		unsigned long long jmenov[] = {1, 3, 15, 315, 2835, 155925, 6081075, 638512875, 10854718875, 1856156927625, 194896477400625, 49308808782358125, 3698160658676859375};
-		double vysledek = (((double)citatel[n-1]) * (myOwnPow(x, n))) / ((double)jmenov[n-1]);
+		double vysledek = (((double)citatel[n-1]) * (myOwnPow(x,n))) / ((double)jmenov[n-1]);
 	return vysledek;
 	}
 	double cfrac_tan(double x, unsigned int n) { // fce vypocita tangens pomoci fraktalovych zlomku, tentokrat ale primo soucet vsech kroku
@@ -56,15 +70,20 @@
 
 int main(int argc, char **argv) {
 
-  double c = 1.5; // default c = 1.5
+	if(!validArguments(argc, argv)) {
+		printf("Wrong argument input (type --help)");
+		return 1;
+	}
+  double c = 1.5;
 
-  if(argv[1] && (strcmp("--help",argv[1]) == 0 || strcmp("--tan",argv[1]) == 0 || strcmp("-c",argv[1]) == 0 || strcmp("-m",argv[1]) == 0)) {
-    if(strcmp("--help",argv[1]) == 0 && argc == 2) {
+  if(argc > 1) {
+
+    if(!strcmp("--help",argv[1]) && argc == 2) {
       char napoveda[] = "--tan A N M, where A is RAD angle (0;1.4>, N is start cycle and M is end cycle\n[-c X] -m A [B], where X is height of measurement starting point, A is RAD angle (0;1.4> and B is RAD angle (0;1.4>";
       printf("%s", napoveda);
       return 0;
     }
-    else if(strcmp("--tan",argv[1]) == 0 && argc == 5) { // pak over jestli to jsou cisla. VSUDE. podminka pro uhel min a max (0;1.4> isinf a isnan
+    else if(!strcmp("--tan",argv[1]) && argc == 5) {
       double tt = atof(argv[2]);
 				if(!checkAngle(tt)) {
 					fprintf(stderr,"%s", "Incorrect angle value (type --help)");
@@ -78,10 +97,9 @@ int main(int argc, char **argv) {
 					fprintf(stderr, "%s", "Incorrect N / M values (type --help)");
 					return 1;
         }
-
       return 0;
     }
-    else if(strcmp("-c",argv[1]) == 0) {
+    else if(!strcmp("-c",argv[1]) && !strcmp("-m",argv[3]) && (argc == 5 || argc == 6)) {
       c = atof(argv[2]);
       if(c > 0 && c <= 100) {
         if(argc == 5) {
@@ -109,7 +127,7 @@ int main(int argc, char **argv) {
 				return 1;
       }
     }
-    else if(strcmp("-m",argv[1]) == 0) {
+    else if(!strcmp("-m",argv[1]) && (argc == 3 || argc == 4)) {
       if(argc == 3) {
         double alfa = atof(argv[2]);
 						if(!checkAngle(alfa)) {
@@ -130,13 +148,13 @@ int main(int argc, char **argv) {
         return 0;
       }
     }
-		else {
-			fprintf(stderr, "%s", "Incorrect argument values (type --help)\n");
-			return 1;
-		}
+    else {
+    fprintf(stderr, "%s", "Incorrect argument input (type --help)\n");
+    return 1;
+    }
   }
   else {
-    fprintf(stderr, "%s", "Incorrect argument values (type --help)\n");
+    fprintf(stderr, "%s", "No argument input (type --help)\n");
     return 1;
   }
 return 0;
