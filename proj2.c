@@ -1,4 +1,4 @@
-// xplsek03, M.Plsek
+/* proj2 proj2.c xplsek03, M.Plsek */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -11,7 +11,7 @@
 			return 1;
 		return 0;
 	}
-	double taylor_tan(double x, unsigned int n) { // processing taylor_tan step by step
+	double taylor_tan(double x, unsigned int n) { // processing taylor_tan by sum of all steps
 		unsigned long long citatel[] = {1, 1, 2, 17, 62, 1382, 21844, 929569, 6404582, 443861162, 18888466084, 113927491862, 58870668456604};
 		unsigned long long jmenov[] = {1, 3, 15, 315, 2835, 155925, 6081075, 638512875, 10854718875, 1856156927625, 194896477400625, 49308808782358125, 3698160658676859375};
 		double vysledek = 0;
@@ -44,10 +44,9 @@
       return vyska;
 	}
 		int tiskniTan(int* N, int* M, double* tt) { // prints --tan output
-		for(int i = 1; i <= *M; i++) {
-			if(i >= *N && i <= *M) {
+		for(int i = *N; i <= *M; i++) {
+			if(i >= *N && i <= *M)
 				printf("%d %e %e %e %e %e\n", i, tan(*tt), taylor_tan(*tt,i), fabs(tan(*tt) - taylor_tan(*tt,i)), cfrac_tan(*tt,i), fabs(tan(*tt)-cfrac_tan(*tt,i)));
-			}
 			else return 0;
 		}
 		return 1;
