@@ -3,14 +3,14 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
-#define EPS 0.00000000001
-// xplsek03, M.Plsek, proj2 KNOWN BUGS: does not support e in floats, rewrite taylor_tan for, strtod for checking e in double convention
+#define EPS 0.00000000005
+// xplsek03, M.Plsek
 	int checkAngle(double x) { // checks angle value from (0; 1.4>
 		if(x > 0 && x <= 1.4)
 			return 1;
 		return 0;
 	}
-
+/*
 	int validArguments(int argc, char* argv[]) { // fction checks if arguments put by user are in valid format
 	  int override = 0;
 		for(int i = 2; i < argc; i++) {
@@ -23,25 +23,24 @@
 		}
 		return 1;
 	}
-
-	double myOwnPow(double x, int n) { // power
-		int naKolikatou = 2*n - 1;
-		double y = x;
-		for(int i = 1; i < naKolikatou; i++)
-			x = x * y;
-		return x;
-	}
+*/
 	double taylor_tan(double x, unsigned int n) { // processing taylor_tan step by step
 		unsigned long long citatel[] = {1, 1, 2, 17, 62, 1382, 21844, 929569, 6404582, 443861162, 18888466084, 113927491862, 58870668456604};
 		unsigned long long jmenov[] = {1, 3, 15, 315, 2835, 155925, 6081075, 638512875, 10854718875, 1856156927625, 194896477400625, 49308808782358125, 3698160658676859375};
-		double vysledek = (((double)citatel[n-1]) * (myOwnPow(x,n))) / ((double)jmenov[n-1]);
-	return vysledek;
+		double vysledek = 0;
+		double xx = x * x;
+			for(unsigned int i = 1; i < n+1; i++) { // to n je kolik se jich ma secist
+				if(i != 1)
+					x = x * xx;
+				vysledek += (((double)citatel[i-1]) * x) / ((double)jmenov[i-1]);
+			}
+		return vysledek;
 	}
 	double cfrac_tan(double x, unsigned int n) { // processing cfrac_tan by sum of all steps
-	double vysledek = 0;
-	for(int i = n; i > 0; i--)
-		vysledek = 1 / (((2*i - 1) / x) - vysledek);
-	return vysledek;
+		double vysledek = 0;
+		for(int i = n; i > 0; i--)
+			vysledek = 1 / (((2*i - 1) / x) - vysledek);
+		return vysledek;
 	}
 
 	int eps(double uhel) { // eps function , 10 dec places between n and n+1
@@ -61,20 +60,18 @@
 	}
 
 		void tiskniTan(int* N, int* M, double* tt) { // prints --tan output
-		double sumTaylor = 0;
 		for(int i = 1; i <= *M; i++) {
-			sumTaylor += taylor_tan(*tt,i);
 			if(i >= *N && i <= *M)
-				printf("%d %e %e %e %e %e\n", i, tan(*tt), sumTaylor, fabs(tan(*tt) - sumTaylor), cfrac_tan(*tt,i), fabs(tan(*tt)-cfrac_tan(*tt,i)));
+				printf("%d %e %e %e %e %e\n", i, tan(*tt), taylor_tan(*tt,i), fabs(tan(*tt) - taylor_tan(*tt,i)), cfrac_tan(*tt,i), fabs(tan(*tt)-cfrac_tan(*tt,i)));
 		}
 	}
 
 int main(int argc, char **argv) {
 
-	if(!validArguments(argc, argv)) {
+	/*if(!validArguments(argc, argv)) {
 		printf("Incorrect argument input (type --help)");
 		return 1;
-	}
+	}*/
   double c = 1.5;
 
   if(argc > 1) {
@@ -85,14 +82,16 @@ int main(int argc, char **argv) {
       return 0;
     }
     else if(!strcmp("--tan",argv[1]) && argc == 5) {
-      double tt = atof(argv[2]);
-				if(!checkAngle(tt)) {
+      char *end;
+      double tt = strtod(argv[2], &end);
+				if(!checkAngle(tt) || *end != '\0') {
 					fprintf(stderr,"%s", "Incorrect angle value (type --help)");
 					return 1;
 				}
-      int N = atoi(argv[3]);
-      int M = atoi(argv[4]);
-        if(0 < N && N <= M && M < 14)
+      int N = strtol(argv[3], &end, 10);
+      char *end4;
+      int M = strtol(argv[4], &end4, 10);
+        if(0 < N && N <= M && M < 14 && M != 0 && *end == '\0' && *end4 == '\0')
           tiskniTan(&N, &M, &tt);
         else {
 					fprintf(stderr, "%s", "Incorrect N / M values (type --help)");
@@ -101,11 +100,12 @@ int main(int argc, char **argv) {
       return 0;
     }
     else if((argc == 5 || argc == 6) && !strcmp("-c",argv[1]) && !strcmp("-m",argv[3])) {
-      c = atof(argv[2]);
-      if(c > 0 && c <= 100) {
+      char *end;
+      c = strtod(argv[2], &end);
+      if(c > 0 && c <= 100 && *end == '\0') {
         if(argc == 5) {
-          double alfa = atof(argv[4]);
-						if(!checkAngle(alfa)) {
+          double alfa = strtod(argv[4], &end);
+						if(!checkAngle(alfa) || *end != '\0') {
 						fprintf(stderr,"%s", "Incorrect angle value (type --help)");
 						return 1;
 						}
@@ -113,9 +113,10 @@ int main(int argc, char **argv) {
           return 0;
         }
         if(argc == 6) {
-          double alfa = atof(argv[4]);
-          double beta = atof(argv[5]);
-						if(!checkAngle(alfa) && !checkAngle(beta)) {
+          double alfa = strtod(argv[4], &end);
+          char *end2;
+          double beta = strtod(argv[5], &end2);
+						if(!checkAngle(alfa) || !checkAngle(beta) || *end != '\0' || *end2 != '\0') {
 						fprintf(stderr,"%s", "Incorrect angle value (type --help)");
 						return 1;
 						}
@@ -130,8 +131,9 @@ int main(int argc, char **argv) {
     }
     else if(!strcmp("-m",argv[1]) && (argc == 3 || argc == 4)) {
       if(argc == 3) {
-        double alfa = atof(argv[2]);
-						if(!checkAngle(alfa)) {
+      	char *end;
+        double alfa = strtod(argv[2], &end);
+						if(!checkAngle(alfa) || *end != '\0') {
 						fprintf(stderr,"%s", "Incorrect angle value (type --help)");
 						return 1;
 						}
@@ -139,9 +141,10 @@ int main(int argc, char **argv) {
         return 0;
       }
       if(argc == 4) {
-        double alfa = atof(argv[2]);
-        double beta = atof(argv[3]);
-					if(!checkAngle(alfa) && !checkAngle(beta)) {
+        char *end, *end3;
+        double alfa = strtod(argv[2], &end);
+        double beta = strtod(argv[3], &end3);
+					if(!checkAngle(alfa) || !checkAngle(beta) || *end != '\0' || *end3 != '\0') {
 					fprintf(stderr,"%s", "Incorrect angle value (type --help)");
 					return 1;
 					}
