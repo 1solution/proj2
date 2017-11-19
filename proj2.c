@@ -64,14 +64,18 @@ int main(int argc, char **argv) {
     else if(!strcmp("--tan",argv[1]) && argc == 5) {
       char *end;
       double tt = strtod(argv[2], &end);
-				if(/* !checkAngle(tt) || */*end != '\0') {
+				if(*end != '\0') {
 					fprintf(stderr,"%s", "Incorrect angle value (type --help)");
 					return 1;
 				}
       int N = strtol(argv[3], &end, 10);
       char *end4;
       int M = strtol(argv[4], &end4, 10);
-        if(0 < N && N <= M && M < 14 && M != 0 && *end == '\0' && *end4 == '\0' && !isinf(tt) && !isnan(tt))
+				if(isinf(tt) || isnan(tt) || !strcmp("",argv[2])) {
+					fprintf(stderr, "%s", "INF or NAN or empty angle value (type --help)");
+					return 1;
+				}
+        else if(0 < N && N <= M && M < 14 && M != 0 && *end == '\0' && *end4 == '\0')
           	tiskniTan(&N, &M, &tt);
         else {
 					fprintf(stderr, "%s", "Incorrect N / M values (type --help)");
